@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+        }
+
+        .sidebar {
+            width: 250px;
+            background-color: #333;
+            color: white;
+            height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        .sidebar h2 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .sidebar ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .sidebar ul li {
+            margin: 20px 0;
+        }
+
+        .sidebar ul li a {
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+            display: block;
+            padding: 10px;
+            transition: background-color 0.3s;
+        }
+
+        .sidebar ul li a:hover {
+            background-color: #575757;
+        }
+
+        .sidebar .logout-btn {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 90%;
+        }
+
+        .sidebar .logout-btn:hover {
+            background-color: #d32f2f;
+        }
+
+        .main-content {
+            flex-grow: 1;
+            padding: 30px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 20px;
+        }
+
+        .admin-container {
+            display: flex;
+            flex-direction: column;
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .admin-container h2 {
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        #userForm {
+            margin-bottom: 20px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        input, select, button {
+            padding: 12px;
+            margin: 10px 0;
+            width: 100%;
+            box-sizing: border-box;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .message {
+            font-size: 16px;
+            margin: 20px 0;
+        }
+
+        .message.success {
+            color: green;
+        }
+
+        .message.error {
+            color: red;
+        }
+
+        #userList {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        #userList li {
+            margin: 5px 0;
+            padding: 10px;
+            background-color: #fff;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 200px;
+            }
+
+            .main-content {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>Admin Panel</h2>
+        <ul>
+            <li><a href="admin-dashboard.html">Manage Users</a></li>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="#">Profile</a></li>
+            <li><a href="#">Settings</a></li>
+            <li><a href="#">Reports</a></li>
+        </ul>
+       
+        <button class="logout-btn" onclick="logout()" id="logoutBtn">Log Out</button>
+    </div>
+
+    <div class="main-content">
+        <div class="header">
+            <h2>Manage Users</h2>
+        </div>
+
+        <div class="admin-container">
+            <form id="userForm">
+                <select id="actionSelect">
+                    <option value="add">Add User</option>
+                    <option value="modify">Modify User</option>
+                    <option value="delete">Delete User</option>
+                </select>
+
+                <div id="userFields">
+                    <input type="text" id="username" placeholder="Username" required>
+                    <input type="password" id="password" placeholder="Password" required>
+                    <input type="text" id="email" placeholder="Email" required>
+                </div>
+
+                <button type="submit">Submit</button>
+            </form>
+
+            <p id="message" class="message"></p>
+
+            <div>
+                <h3>Existing Users:</h3>
+                <ul id="userList"></ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.onload = function () {
+            const loggedIn = localStorage.getItem("loggedIn");
+            const currentUser = localStorage.getItem("currentUser");
+
+            if (loggedIn === "true" && currentUser === "admin") {
+                displayUsers();
+            } else {
+                window.location.href = "login.html";
+            }
+        };
+
+        function displayUsers() {
+            const users = JSON.parse(localStorage.getItem("users")) || [];
+            const userList = document.getElementById("userList");
+            userList.innerHTML = '';
+
+            users.forEach(user => {
+                const li = document.createElement("li");
+                li.textContent = `${user.username} - ${user.email}`;
+                userList.appendChild(li);
+            });
+        }
+
+        document.getElementById("userForm").onsubmit = function (event) {
+            event.preventDefault();
+
+            const action = document.getElementById("actionSelect").value;
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+            const email = document.getElementById("email").value;
+
+            const message = document.getElementById("message");
+
+            let users = JSON.parse(localStorage.getItem("users")) || [];
+
+            let userIndex;
+
+            switch (action) {
+                case "add":
+                    if (users.some(user => user.username === username)) {
+                        message.textContent = "User already exists!";
+                        message.className = "message error";
+                        return;
+                    }
+                    users.push({ username, password, email });
+                    localStorage.setItem("users", JSON.stringify(users));
+                    message.textContent = "User added successfully!";
+                    message.className = "message success";
+                    break;
+
+                case "modify":
+                    userIndex = users.findIndex(user => user.username === username);
+                    if (userIndex === -1) {
+                        message.textContent = "User not found!";
+                        message.className = "message error";
+                        return;
+                    }
+                    users[userIndex] = { username, password, email };
+                    localStorage.setItem("users", JSON.stringify(users));
+                    message.textContent = "User modified successfully!";
+                    message.className = "message success";
+                    break;
+
+                case "delete":
+                    userIndex = users.findIndex(user => user.username === username);
+                    if (userIndex === -1) {
+                        message.textContent = "User not found!";
+                        message.className = "message error";
+                        return;
+                    }
+                    users.splice(userIndex, 1);
+                    localStorage.setItem("users", JSON.stringify(users));
+                    message.textContent = "User deleted successfully!";
+                    message.className = "message success";
+                    break;
+
+                default:
+                    message.textContent = "Invalid action!";
+                    message.className = "message error";
+            }
+
+            displayUsers();
+        };
+
+        function logout() {
+            localStorage.removeItem("loggedIn");
+            localStorage.removeItem("currentUser");
+            alert("You have been logged out.");
+            window.location.href = "login.html";
+        }
+    </script>
+</body>
+</html>
